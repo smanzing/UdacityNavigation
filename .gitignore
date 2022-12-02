@@ -36,3 +36,6 @@ __pycache__
 
 # Unity
 unity-environment.log
+
+# MAC
+.DS_Store
