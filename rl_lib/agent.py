@@ -1,7 +1,6 @@
 import numpy as np
-import random 
+import random
 from enum import Enum
-
 
 from rl_lib.model import QNetwork
 from rl_lib.replay import ReplayBuffer
@@ -10,21 +9,23 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
+
 class DQNExtensions(Enum):
     DoubleDQN = 0
 
 
 BUFFER_SIZE = int(1e5)  # replay buffer size
-BATCH_SIZE = 64         # minibatch size
-GAMMA = 0.99            # discount factor
-TAU = 1e-3              # for soft update of target parameters
-LR = 5e-4               # learning rate 
-UPDATE_EVERY = 4        # how often to update the network
+BATCH_SIZE = 64  # minibatch size
+GAMMA = 0.99  # discount factor
+TAU = 1e-3  # for soft update of target parameters
+LR = 5e-4  # learning rate
+UPDATE_EVERY = 4  # how often to update the network
 DQN_EXTENSIONS = [DQNExtensions.DoubleDQN]
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class Agent():
+
+class Agent:
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, seed):
@@ -49,15 +50,15 @@ class Agent():
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
-    
+
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
-        
+
         # Learn every UPDATE_EVERY time steps.
         self.t_step = (self.t_step + 1) % UPDATE_EVERY
-        #if self.t_step == 0:
-            # If enough samples are available in memory, get random subset and learn
+        # if self.t_step == 0:
+        # If enough samples are available in memory, get random subset and learn
         #    if len(self.memory) > BATCH_SIZE:
         #        experiences = self.memory.sample()
         #        self.learn(experiences, GAMMA)
@@ -116,7 +117,7 @@ class Agent():
 
         # ------------------- update target network ------------------- #
         if self.t_step == 0:
-            self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)                     
+            self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
@@ -129,5 +130,4 @@ class Agent():
             tau (float): interpolation parameter 
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
-
+            target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
