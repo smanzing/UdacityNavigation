@@ -22,7 +22,8 @@ class Agent:
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size: int, action_size: int, seed: int, replay_buffer: ReplayBuffer,
-                 gamma: float = 0.99, tau: float = 1e-3, learning_rate: float = 5e-4, update_every: int = 4,
+                 gamma: float = 0.99, tau: float = 1e-3, learning_rate: float = 5e-4,
+                 update_local_every: int = 2, update_target_every: int = 4,
                  dqn_extensions: List[DQNExtensions] = []):
         """
         @param state_size: dimension of each state
@@ -32,7 +33,8 @@ class Agent:
         @param gamma: discount factor
         @param tau: for soft update of target parameters
         @param learning_rate: learning rate
-        @param update_every: how often to update the target network
+        @param update_local_every: how often to update the local network
+        @param update_target_every: how often to update the target network
         @param dqn_extensions: if empty, the standard DQN algorithm is used for learning.
         """
 
@@ -43,7 +45,8 @@ class Agent:
         self.gamma = gamma
         self.tau = tau
         self.learning_rate = learning_rate
-        self.update_every = update_every
+        self.update_every_local = update_local_every
+        self.update_every_target = update_target_every
         self.dqn_extensions = dqn_extensions
 
         # Q-Network
@@ -54,19 +57,18 @@ class Agent:
         # Replay memory
         self.memory = replay_buffer
         # Initialize time step (helper for updating the target network every update_every steps)
-        self.t_step = 0
+        self.t_step_target = 0
+        self.t_step_local = 0
 
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
 
         # Learn every self.update_every time steps.
-        self.t_step = (self.t_step + 1) % self.update_every
-        # if self.t_step == 0:
+        self.t_step_target = (self.t_step_target + 1) % self.update_every_target
+        self.t_step_local = (self.t_step_local + 1) % self.update_every_local
+
         # If enough samples are available in memory, get random subset and learn
-        #    if len(self.memory) > BATCH_SIZE:
-        #        experiences = self.memory.sample()
-        #        self.learn(experiences, self.gamma)
         if self.memory.is_size_of_memory_sufficient_to_draw_batch():
             experiences = self.memory.sample()
             self.learn(experiences, self.gamma)
@@ -99,29 +101,30 @@ class Agent:
             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples 
             gamma (float): discount factor
         """
-        states, actions, rewards, next_states, dones = experiences
+        if self.t_step_local == 0:
+            states, actions, rewards, next_states, dones = experiences
 
-        if DQNExtensions.DoubleDQN in self.dqn_extensions:
-            a_max = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
-            Q_targets_next = self.qnetwork_target(next_states).detach().gather(1, a_max)
-        else:
-            # Get max predicted Q values (for next states) from target model
-            Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
-        # Compute Q targets for current states 
-        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+            if DQNExtensions.DoubleDQN in self.dqn_extensions:
+                a_max = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
+                Q_targets_next = self.qnetwork_target(next_states).detach().gather(1, a_max)
+            else:
+                # Get max predicted Q values (for next states) from target model
+                Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+            # Compute Q targets for current states
+            Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
 
-        # Get expected Q values from local model
-        Q_expected = self.qnetwork_local(states).gather(1, actions)
+            # Get expected Q values from local model
+            Q_expected = self.qnetwork_local(states).gather(1, actions)
 
-        # Compute loss
-        loss = F.mse_loss(Q_expected, Q_targets)
-        # Minimize the loss
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+            # Compute loss
+            loss = F.mse_loss(Q_expected, Q_targets)
+            # Minimize the loss
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
         # ------------------- update target network ------------------- #
-        if self.t_step == 0:
+        if self.t_step_target == 0:
             self.soft_update(self.qnetwork_local, self.qnetwork_target, self.tau)
 
     def soft_update(self, local_model, target_model, tau):
