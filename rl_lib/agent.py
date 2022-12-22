@@ -55,23 +55,22 @@ class Agent:
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=self.learning_rate)
 
         # Replay memory
-        self.memory = replay_buffer
+        self.replay_buffer = replay_buffer
         # Initialize time step (helper for updating the target network every update_every steps)
         self.t_step_target = 0
         self.t_step_local = 0
 
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
-        self.memory.add(state, action, reward, next_state, done)
+        self.replay_buffer.add(state, action, reward, next_state, done)
 
         # Learn every self.update_every time steps.
         self.t_step_target = (self.t_step_target + 1) % self.update_every_target
         self.t_step_local = (self.t_step_local + 1) % self.update_every_local
 
         # If enough samples are available in memory, get random subset and learn
-        if self.memory.is_size_of_memory_sufficient_to_draw_batch():
-            experiences = self.memory.sample()
-            self.learn(experiences, self.gamma)
+        if self.replay_buffer.is_size_of_memory_sufficient_to_draw_batch():
+            self.learn()
 
     def act(self, state, eps=0.):
         """Returns actions for given state as per current policy.
@@ -93,31 +92,40 @@ class Agent:
         else:
             return random.choice(np.arange(self.action_size))
 
-    def learn(self, experiences, gamma):
-        """Update value parameters using given batch of experience tuples.
+    def get_q_targets_next(self, next_states):
+        if DQNExtensions.DoubleDQN in self.dqn_extensions:
+            a_max = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
+            q_targets_next = self.qnetwork_target(next_states).detach().gather(1, a_max)
+        else:
+            # Get max predicted Q values (for next states) from target model
+            q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+        return q_targets_next
 
-        Params
-        ======
-            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples 
-            gamma (float): discount factor
-        """
+    def get_q_targets(self, next_states, rewards, dones):
+        q_targets_next = self.get_q_targets_next(next_states)
+        # Compute Q targets for current states
+        q_targets = rewards + (self.gamma * q_targets_next * (1 - dones))
+        return q_targets
+
+    def get_temporal_difference_error(self, states, actions, next_states, rewards, dones):
+        q_targets = self.get_q_targets(next_states, rewards, dones)
+        # Get expected Q values from local model
+        q_expected = self.qnetwork_local(states).gather(1, actions)
+        return q_targets - q_expected, q_targets, q_expected
+
+    def learn(self):
+        """Update value parameters using a sampled batch of experience tuples."""
+
         if self.t_step_local == 0:
-            states, actions, rewards, next_states, dones = experiences
+            states, actions, rewards, next_states, dones, batch_indices = self.replay_buffer.sample()
 
-            if DQNExtensions.DoubleDQN in self.dqn_extensions:
-                a_max = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
-                Q_targets_next = self.qnetwork_target(next_states).detach().gather(1, a_max)
-            else:
-                # Get max predicted Q values (for next states) from target model
-                Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
-            # Compute Q targets for current states
-            Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+            delta, q_targets, q_expected = self.get_temporal_difference_error(
+                states, actions, next_states, rewards, dones)
 
-            # Get expected Q values from local model
-            Q_expected = self.qnetwork_local(states).gather(1, actions)
-
+            # update priorities in replay buffer
+            self.replay_buffer.update_priorities(batch_indices, np.abs(delta.detach().numpy()))
             # Compute loss
-            loss = F.mse_loss(Q_expected, Q_targets)
+            loss = F.mse_loss(q_expected, q_targets)
             # Minimize the loss
             self.optimizer.zero_grad()
             loss.backward()
@@ -125,9 +133,9 @@ class Agent:
 
         # ------------------- update target network ------------------- #
         if self.t_step_target == 0:
-            self.soft_update(self.qnetwork_local, self.qnetwork_target, self.tau)
+            self.soft_update(self.qnetwork_local, self.qnetwork_target)
 
-    def soft_update(self, local_model, target_model, tau):
+    def soft_update(self, local_model, target_model):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
 
@@ -135,7 +143,6 @@ class Agent:
         ======
             local_model (PyTorch model): weights will be copied from
             target_model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter 
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
+            target_param.data.copy_(self.tau * local_param.data + (1.0 - self.tau) * target_param.data)
