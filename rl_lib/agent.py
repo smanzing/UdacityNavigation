@@ -117,7 +117,7 @@ class Agent:
         """Update value parameters using a sampled batch of experience tuples."""
 
         if self.t_step_local == 0:
-            states, actions, rewards, next_states, dones, batch_indices = self.replay_buffer.sample()
+            states, actions, rewards, next_states, dones, batch_indices, normalized_importance_sampling_weigths = self.replay_buffer.sample()
 
             delta, q_targets, q_expected = self.get_temporal_difference_error(
                 states, actions, next_states, rewards, dones)
@@ -125,7 +125,8 @@ class Agent:
             # update priorities in replay buffer
             self.replay_buffer.update_priorities(batch_indices, np.abs(delta.detach().numpy()))
             # Compute loss
-            loss = F.mse_loss(q_expected, q_targets)
+            # loss = F.mse_loss(q_expected, q_targets)
+            loss = torch.mean((normalized_importance_sampling_weigths * delta) ** 2)
             # Minimize the loss
             self.optimizer.zero_grad()
             loss.backward()
