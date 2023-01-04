@@ -6,10 +6,9 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def dqn(env, brain_name, agent, n_episodes=2000, max_t=1000, eps_start=1.0, eps_end=0.01, eps_decay=0.995,
-        min_avg_score=13.0, continue_learning=False):
+        min_avg_score=13.0, continue_learning=False, filename='checkpoint'):
     """
     Deep Q-Learning.
-
     @param env: unity environment
     @param brain_name: name of the brain that we control from Python
     @param agent: the RL agent that we train
@@ -20,6 +19,7 @@ def dqn(env, brain_name, agent, n_episodes=2000, max_t=1000, eps_start=1.0, eps_
     @param eps_decay: multiplicative factor (per episode) for decreasing epsilon
     @param min_avg_score: minimum average score over 100 episodes that the agent must achieve to consider the task fulfilled
     @param continue_learning: if true, the agent continues to learn after reaching min_avg_score until reaching n_episodes
+    @param filename: name for the file that contains the trained network parameters
     @return:
     """
 
@@ -63,9 +63,9 @@ def dqn(env, brain_name, agent, n_episodes=2000, max_t=1000, eps_start=1.0, eps_
         if np.mean(scores_window) >= min_avg_score and not min_score_achieved:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode - 100,
                                                                                          np.mean(scores_window)))
-            torch.save(agent.qnetwork_local.state_dict(), 'checkpoint_min_score_achieved.pth')
+            torch.save(agent.qnetwork_local.state_dict(), filename + '_min_score_achieved.pth')
             min_score_achieved = True
             if not continue_learning:
                 break
-    torch.save(agent.qnetwork_local.state_dict(), 'checkpoint.pth')
+    torch.save(agent.qnetwork_local.state_dict(), filename + '.pth')
     return scores
