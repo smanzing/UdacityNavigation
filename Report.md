@@ -6,12 +6,11 @@ This report summarizes the implemented methods for the project **Navigation** of
 ## 1 Introduction
 
 The goal of the project **Navigation** is to train an agent to collect yellow bananas while avoiding blue bananas
-in a large, square world. Below, we first give a description of the environment, followed by a short introduction to 
-reinforcement learning.
+in a large, square world. Below, we give a description of the problem statement.
 
 ### Problem Statement
 
-We train the agent using reinforcement learning. 
+We train an agent using reinforcement learning. 
 Reinforcement learning is modeled as a Markov Decision Process, in which we have a 
 
 - set of states $\mathcal{S}$,
@@ -26,31 +25,57 @@ for collecting yellow bananas and a reward of -1 for collecting blue bananas.
 
 We aim to train an agent to interact with its environment such that the expected return, i.e., 
 the (discounted) cumulative reward, is maximized. Thus, the agent must collect as many yellow bananas as possible, while 
-avoiding blue bananas in the world.
+avoiding blue bananas.
 
 The task is episodic and terminates after the agent has taken a maximum number of actions. The environment is solved, 
 if the agent achieves an average score of +13 over 100 consecutive episodes.
 
 ## 2 Method
 
-The agent needs to learn the best action to take in each state of the environment. We refer to the mapping from states 
-to actions as policy. For each policy, we have a action-value function. The action-value function yields the expected
-return for a state $s \in \mathcal{S}$ and action $a \in \mathcal{A}$ under the assumption that the agent takes action $a$ 
-in state $s$ and follows the policy for all future time steps. The action-value function is also known as Q-value function.
+We aim to learn the best action for each state of the environment. We refer to the mapping from states 
+to actions as policy. A policy can be derived from an action-value function $Q: \mathcal{S} \times \mathcal{A} \rightarrow \mathcal{R}$:
 
-For discrete environments with a small, finite number of states, the Q-value function can be represented as table. 
-However, in large state spaces this becomes computationally intractable. Instead, function approximation can be used to 
-approximate the Q-value function. In this project, we use neural networks to approximate the Q-value function. 
+$$a_t = \argmax_{a \in \mathcal{A}} Q(s, a),$$
 
-Using neural networks for approximating the Q-value function leads to deep reinforcement learning.
-A well-known algorithm is *Deep Q-Learning* to learn the Q-value function, see [[1]](#1). 
+where the action-value function $Q$ yields the expected return for a state $s \in \mathcal{S}$ and action $a \in \mathcal{A}$ 
+under the assumption that the agent takes action $a$ in state $s$ and follows the policy for all future time steps. 
+The action-value function is also known as Q-value function.
 
+We can learn the optimal Q-value function using Q-Learning and variants thereof. 
+In this project, we use a combination of the algorithms presented in [[1]](#1), [[2]](#2), and [[3]](#3), to solve the 
+reinforcement learning problem. Before reviewing the the main findings of [[1]](#1), [[2]](#2), and [[3]](#3), we
+briefly explain the basics of Q-learning.
 
-Below, we review the main findings of [[1]](#1), [[2]](#2), and [[3]](#3), followed by clarifying implementation details.
+### 2.1 Q-Learning
+
+In Q-learning, we iteratively update the estimated Q-values over consecutive time steps until convergence. At each time 
+step $t$, the agent takes an action $a_t$ in state $s_t$. Then, the agent receives a reward $r_{t+1}$ and reaches the 
+next state $s_{t+1}$. Before taking the next action $a_{t+1}$, the information of the tuple $e_t = (s_t, a_t, r_{t+1}, s_{t+1})$
+--also referred to as experience--is used to update the current estimate of the Q-value function. The update rule is:
+
+$$Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha (r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime) - Q(s_t, a_t)),$$
+
+where $\alpha \in ]0, 1]$ is the learning rate, $\gamma\in [0, 1[$ is the discount factor, and 
+$(r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime) - Q(s_t, a_t))$ is the temporal difference error.
+Note that we assume that we take the action $a^\prime$ that maximizes the Q-value function for the next state $s_{t+1}$ for
+computing the time difference error; however, other rules can be applied as well.
+
+For discrete environments with a small, finite number of states and actions, the Q-value function can be represented as table. 
+However, this becomes computationally intractable for large state/action spaces and continuous state/action spaces. 
+Instead of using a finite structure to represent the Q-value function, we can use function approximation to approximate 
+the Q-value function, i.e., we try to approximate the real Q-value function with a linear or non-linear function.
+In this project, we use neural networks to approximate the Q-value function. This leads to *Deep Q-Learning* [[1]](#1), 
+which is explained next.
+
 
 ### 2.1 Deep Q-Learning Algorithm
+In  [[1]](#1), neural networks are used as function approximator for the Q-value function. Let us refer to the neural network
+with weights $\theta$ as Q-network $Q(s, a; \theta)$. We can then rewrite the temporal difference error as:
 
-Typically, with large state/action spaces,  
+$$\delta_t = r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime; \theta) - Q(s_t, a_t; \theta)$$
+
+Thus, we need to find a set of weights $\theta$ that yield an optimal Q-value function. 
+
 
 ### 2.2 Double Deep Q-Learning 
 
