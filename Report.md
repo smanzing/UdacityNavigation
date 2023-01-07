@@ -109,7 +109,7 @@ $$r_{t+1} + \gamma Q(s_{t+1}, \arg \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^
 
 ### 2.3 Prioritized Experience Replay
 
-the work of [[3]](#3) proposes to improve the utilization of experiences. There may be some experiences that are more important,
+The work of [[3]](#3) proposes to improve the utilization of experiences. There may be some experiences that are more important,
 i.e., the agent can learn more from them, as other experiences. The priority $p_i$ of the $i$-th experience is the magnitude of the
 temporal difference error:
 
