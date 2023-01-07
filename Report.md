@@ -57,7 +57,7 @@ $$Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha (r_{t+1} + \gamma \max_{a^\prime \
 
 where $\alpha \in ]0, 1]$ is the learning rate, $\gamma\in [0, 1[$ is the discount factor, and
 
-$$\delta = (r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime) - Q(s_t, a_t))$$
+$$\Delta = (r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime) - Q(s_t, a_t))$$
 
 is the temporal difference error. Note that we assume that we take the action $a^\prime$ that maximizes the Q-value 
 function for the next state $s_{t+1}$ for computing the time difference error; however, other rules can be applied as well.
@@ -84,7 +84,7 @@ where $r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime; \th
 function and $Q(s_t, a_t; \theta)$ is the current Q-value given the weights $\theta$. Using gradient descent, we obtain 
 the following update rule for the weights $\theta$:
 
-$$\delta \theta = \alpha \big(r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime; \theta^-) - Q(s_t, a_t; \theta)\big) \nabla_{\theta}  Q(s_t, a_t; \theta).$$
+$$\Delta \theta = \alpha \big(r_{t+1} + \gamma \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime; \theta^-) - Q(s_t, a_t; \theta)\big) \nabla_{\theta}  Q(s_t, a_t; \theta).$$
 
 Using vanilla Q-Learning with Q-networks as function approximator can potentially lead to harmful correlations. There are 
 two issues, namely:
@@ -113,9 +113,9 @@ the work of [[3]](#3) proposes to improve the utilization of experiences. There 
 i.e., the agent can learn more from them, as other experiences. The priority $p_i$ of the $i$-th experience is the magnitude of the
 temporal difference error:
 
-$$p_i = |\delta_i|+ E,$$ 
+$$p_i = |\Delta_i|+ E,$$ 
 
-with $E > 0$ to ensure that experiences can also be sampled in case $|\delta_i| = 0$. A greater temporal difference error 
+with $E > 0$ to ensure that experiences can also be sampled in case $|\Delta_i| = 0$. A greater temporal difference error 
 corresponds to a higher priority. The priority is used to compute the sampling probability for each experience when:
 
 $$P_i = \frac{p_i^a}{\sum_k p_k^a},$$
@@ -125,7 +125,7 @@ overfitting to a small set of experiences, see [[3]](#3). Basically, higher valu
 experiences has high influence on their sampling probability. In contrast, $a=0$ corresponds to uniform sampling.
 To compensate for non-uniform sampling probabilities, the update rule for the Q-network weights is changed to
 
-$$\delta \theta_i = \frac{(K P_i)^{-b}}{max_j (K P_j)^{-b}} \delta_i \nabla_{\theta}  Q(s_t, a_t; \theta),$$
+$$\Delta \theta_i = \frac{(K P_i)^{-b}}{max_j (K P_j)^{-b}} \Delta_i \nabla_{\theta}  Q(s_t, a_t; \theta),$$
 
 where $(K P_i)^{-b}$ is the importance-sampling weight, $K$ is the length of the replay buffer, and $\frac{1}{max_j (K P_j)^{-b}}$ 
 normalizes the importance-sampling weights with $j$ iterating over all experiences in the current batch.
@@ -140,7 +140,7 @@ Following steps are executed for each episode:
 - Every $c$-th step
   - Sample batch from replay buffer
   - Compute importance-sampling weight for each experience $e_i$ in batch
-  - Compute temporal difference error $\delta_i$ for all $e_i$ in batch
+  - Compute temporal difference error $\Delta_i$ for all $e_i$ in batch
   - Update priorities $p_i$ for all $e_i$ in batch
   - Compute loss function $L$ and update Q-network weights $\theta$
 - Every $l$-th step
