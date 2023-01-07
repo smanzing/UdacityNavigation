@@ -35,7 +35,7 @@ if the agent achieves an average score of +13 over 100 consecutive episodes.
 We aim to learn the best action for each state of the environment. We refer to the mapping from states 
 to actions as policy. A policy can be derived from an action-value function $Q: \mathcal{S} \times \mathcal{A} \rightarrow \mathcal{R}$:
 
-$$a_t = \arg \max_{a \in \mathcal{A}} Q(s, a),$$
+$$a^\asterix_t = \arg \max_{a \in \mathcal{A}} Q(s, a),$$
 
 where the action-value function $Q$ yields the expected return for a state $s \in \mathcal{S}$ and action $a \in \mathcal{A}$ 
 under the assumption that the agent takes action $a$ in state $s$ and follows the policy for all future time steps. 
