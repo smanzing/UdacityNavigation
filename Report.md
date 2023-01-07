@@ -125,7 +125,7 @@ overfitting to a small set of experiences, see [[3]](#3). Basically, higher valu
 experiences has high influence on their sampling probability. In contrast, $a=0$ corresponds to uniform sampling.
 To compensate for non-uniform sampling probabilities, the update rule for the Q-network weights is changed to
 
-$$\Delta \theta_i = \frac{(K P_i)^{-b}}{\max_j (K P_j)^{-b}} \Delta_i \nabla_{\theta}  Q(s_t, a_t; \theta),$$
+$$\Delta \theta = \sum_i \frac{(K P_i)^{-b}}{\max_j (K P_j)^{-b}} \Delta_i \nabla_{\theta}  Q(s_t, a_t; \theta_i),$$
 
 where $(K P_i)^{-b}$ is the importance-sampling weight, $K$ is the length of the replay buffer, and $\frac{1}{\max_j (K P_j)^{-b}}$ 
 normalizes the importance-sampling weights with $j$ iterating over all experiences in the current batch.
