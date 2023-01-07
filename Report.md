@@ -115,7 +115,7 @@ temporal difference error:
 
 $$p_i = |\delta_i|+ E,$$ 
 
-with $E > 0$ to ensure that experiences can also be sampled in case $|\Delta_i| = 0$. A greater temporal difference error 
+with $E > 0$ to ensure that experiences can also be sampled in case $|\delta_i| = 0$. A greater temporal difference error 
 corresponds to a higher priority. The priority is used to compute the sampling probability for each experience when:
 
 $$P_i = \frac{p_i^a}{\sum_k p_k^a},$$
@@ -125,7 +125,7 @@ overfitting to a small set of experiences, see [[3]](#3). Basically, higher valu
 experiences has high influence on their sampling probability. In contrast, $a=0$ corresponds to uniform sampling.
 To compensate for non-uniform sampling probabilities, the update rule for the Q-network weights is changed to
 
-$$\Delta \theta = \sum_i \frac{(K P_i)^{-b}}{\max_j (K P_j)^{-b}} \delta_i \nabla_{\theta_i}  Q(s_t, a_t; \theta_i),$$
+$$\Delta \theta = \sum_i \frac{(K P_i)^{-b}}{\max_j (K P_j)^{-b}} \alpha \delta_i \nabla_{\theta_i}  Q(s_t, a_t; \theta_i),$$
 
 where $(K P_i)^{-b}$ is the importance-sampling weight, $K$ is the length of the replay buffer, and $\frac{1}{\max_j (K P_j)^{-b}}$ 
 normalizes the importance-sampling weights with $j$ iterating over all experiences in the current batch.
