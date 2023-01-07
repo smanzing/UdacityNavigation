@@ -169,7 +169,7 @@ After each episode, we decay $\epsilon$ for the epsilon-greedy action selection.
 | Update step $c$          | 2     | 
 | Update step $l$          | 4     | 
 
-**$\epsilon Decay$
+**$\epsilon$ Decay**
 
 | Parameter     | Value |
 |---------------|-------|
