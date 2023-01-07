@@ -35,7 +35,7 @@ if the agent achieves an average score of +13 over 100 consecutive episodes.
 We aim to learn the best action for each state of the environment. We refer to the mapping from states 
 to actions as policy. A policy can be derived from an action-value function $Q: \mathcal{S} \times \mathcal{A} \rightarrow \mathcal{R}$:
 
-$$a_t = \argmax_{a \in \mathcal{A}} Q(s, a),$$
+$$a_t = \arg \max_{a \in \mathcal{A}} Q(s, a),$$
 
 where the action-value function $Q$ yields the expected return for a state $s \in \mathcal{S}$ and action $a \in \mathcal{A}$ 
 under the assumption that the agent takes action $a$ in state $s$ and follows the policy for all future time steps. 
@@ -105,7 +105,7 @@ may overestimate the true Q-value due to the max-operator. In [[2]](#2), Double 
 overestimation issue. To this end, the Q-value target is changed to
 
 
-$$r_{t+1} + \gamma Q(s_{t+1}, \argmax_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime; \theta); \theta^-).$$
+$$r_{t+1} + \gamma Q(s_{t+1}, \arg \max_{a^\prime \in \mathcal{A}} Q(s_{t+1}, a^\prime; \theta); \theta^-).$$
 
 ### 2.3 Prioritized Experience Replay
 
@@ -125,9 +125,9 @@ overfitting to a small set of experiences, see [[3]](#3). Basically, higher valu
 experiences has high influence on their sampling probability. In contrast, $a=0$ corresponds to uniform sampling.
 To compensate for non-uniform sampling probabilities, the update rule for the Q-network weights is changed to
 
-$$\delta \theta_i = \frac{(K P_i)^{-b}}{max_j (K P_j)^{-b}} \delta_i \nabla_{\theta}  Q(s_t, a_t; \theta),$$
+$$\delta \theta_i = \frac{(K P_i)^{-b}}{\max_j (K P_j)^{-b}} \delta_i \nabla_{\theta}  Q(s_t, a_t; \theta),$$
 
-where $(K P_i)^{-b}$ is the importance-sampling weight, $K$ is the length of the replay buffer, and $\frac{1}{max_j (K P_j)^{-b}}$ 
+where $(K P_i)^{-b}$ is the importance-sampling weight, $K$ is the length of the replay buffer, and $\frac{1}{\max_j (K P_j)^{-b}}$ 
 normalizes the importance-sampling weights with $j$ iterating over all experiences in the current batch.
 
 ### 2.4 Implementation Details
