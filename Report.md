@@ -194,6 +194,12 @@ The Q-network architecture consists of three linear layers. The parameters are g
 
 ## 4 Future Work
 
+There are several ways to improve the current implementation, which are listed below:
+
+- Runtime optimization: the learning takes a long time at the moment. To faciliate learning, the runtime of the code could be optimized.
+- Hyperparameter tuning: the current hyperparameter values have not been tuned. To improve the performance of the algorithm, tuning can be done as future work.
+- Annealing of importance-sampling correction: the exponent $b$ is currently fixed. In [[3]](#3), it is suggested to linearly anneal $b$ to $1$, since unbiased updates are more important at the end of the training.
+- Rainbow [[4]](#4): in [[4]](#4), several extensions to the standard DQN algorithm have been successfully combined. These extensions could be also implemented as future work to achieve state-of-the-art performance.
 
 ## References
 
@@ -211,3 +217,8 @@ Hasselt, H. van and Guez, A. and Silver, D.
 Schaul, T. and Quan, J. and Antonoglou, I. and Silver, D.
 **Prioritized Experience Replay**
 *arXiv* **10.48550/ARXIV.1511.05952**, (2015).
+
+<a id="1">[4]</a>
+Hessel, M. and  Modayil, J. and van Hasselt, H. *et al.* 
+**Rainbow: Combining Improvements in Deep Reinforcement Learning**
+*arXiv* **arXiv:1710.02298**, (2017).
