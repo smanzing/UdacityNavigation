@@ -192,7 +192,9 @@ The Q-network architecture consists of three linear layers. The parameters are g
 
 ## 3 Evaluation
 
-![Score with rolling mean][score_rolling_mean.png]
+![Score](score.png)
+
+![Score with rolling mean](score_rolling_mean.png)
 
 ## 4 Future Work
 
