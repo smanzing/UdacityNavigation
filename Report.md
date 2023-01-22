@@ -175,7 +175,7 @@ After each episode, we decay $\epsilon$ for the epsilon-greedy action selection.
 |---------------|-------|
 | Start value   | 1.0   |
 | Minimum value | 0.01  | 
-| Decay rate    | 0.995 |
+| Decay rate    | 0.95  |
 
 The maximum number of time steps for each episode is limited to 1000. 
 
@@ -191,6 +191,8 @@ The Q-network architecture consists of three linear layers. The parameters are g
 
 
 ## 3 Evaluation
+
+![Score with rolling mean][score_rolling_mean.png]
 
 ## 4 Future Work
 
